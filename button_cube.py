@@ -6,16 +6,13 @@ from PyQt5 import QtGui, QtCore, QtWidgets
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
-BASE_PATH = os.path.abspath(os.path.dirname(__file__))
-#print(BASE_PATH)
 import paho.mqtt.client as mqtt
-#sys.path.insert(0,BASE_PATH.split('\\test')[0])
 import time
 import datetime
 
 # Creating Client name - should be unique 
 global clientname
-r=random.randrange(1,10000) # for creating unique client ID
+r=random.randrange(1,100000) # for creating unique client ID
 clientname="IOT_clientId-nXLMZeDcjH"+str(r)
 
 class Mqtt_client():
@@ -87,7 +84,7 @@ class Mqtt_client():
         topic=msg.topic
         m_decode=str(msg.payload.decode("utf-8","ignore"))
         print("message from:"+topic, m_decode)
-        mainwin.subscribeDock.update_mess_win('on_message-> '+ m_decode)
+        mainwin.subscribeDock.update_mess_win(m_decode)
 
     def connect_to(self):
         # Init paho mqtt client class        
@@ -101,31 +98,21 @@ class Mqtt_client():
         self.client.connect(self.broker,self.port)     #connect to broker
     
     def disconnect_from(self):
-        self.client.disconnect() # disconnect
-        print("disconnected")            
+        self.client.disconnect()                   
     
     def start_listening(self):        
-        self.client.loop_start()
-        #time.sleep(running_time)
+        self.client.loop_start()        
     
     def stop_listening(self):        
         self.client.loop_stop()    
     
     def subscribe_to(self, topic):        
-        #self.client.subscribe("matzi/0/3PI_16145805/sts")
         self.client.subscribe(topic)
               
     def publish_to(self, topic, message):
         self.client.publish(topic,message)        
         
-    def relay_on(self,topic="matzi/0/", device_ID="3PI_16168238",on=True):            
-        # Following is an example for code turning a Relay device 'On':
-        if on:
-            self.client.publish(topic+device_ID, ' {"type":"set_state", "action":"set_value", "addr":0, "cname":"ONOFF", "value":1}')
-        else:
-            # and consequently 'OFF':
-            self.client.publish(topic+device_ID, ' {"type":"set_state", "action":"set_value", "addr":0, "cname":"ONOFF", "value":0}')
-    
+      
 class ConnectionDock(QDockWidget):
     """Main """
     def __init__(self,mc):
@@ -147,11 +134,11 @@ class ConnectionDock(QDockWidget):
         self.eClientID.setText(clientname)
         
         self.eUserName=QLineEdit()
-        self.eUserName.setText("MATZI")
+        #self.eUserName.setText()
         
         self.ePassword=QLineEdit()
         self.ePassword.setEchoMode(QLineEdit.Password)
-        self.ePassword.setText("MATZI")
+        #self.ePassword.setText()
         
         self.eKeepAlive=QLineEdit()
         self.eKeepAlive.setValidator(QIntValidator())
@@ -186,8 +173,7 @@ class ConnectionDock(QDockWidget):
         
     def on_connected(self):
         self.eConnectbtn.setStyleSheet("background-color: green")
-        #self.eConnectbtn.setObjectName('Connected')
-            
+                    
     def on_button_connect_click(self):
         self.mc.set_broker(self.eHostInput.text())
         self.mc.set_port(int(self.ePort.text()))
@@ -206,7 +192,7 @@ class PublishDock(QDockWidget):
         self.mc = mc        
                 
         self.ePublisherTopic=QLineEdit()
-        self.ePublisherTopic.setText("matzi/lesson6")        
+        self.ePublisherTopic.setText("matzi/#")        
         self.eQOS=QComboBox()
         self.eQOS.addItems(["0","1","2"])       
         self.eRetainCheckbox = QCheckBox()
@@ -267,7 +253,7 @@ class SubscribeDock(QDockWidget):
     
     # create function that update text in received message window
     def update_mess_win(self,text):
-        self.eRecMess.append('update_mess_win-> '+ text)
+        self.eRecMess.append(text)
         
 class MainWindow(QMainWindow):
     
