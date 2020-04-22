@@ -12,8 +12,8 @@ import datetime
 
 # Creating Client name - should be unique 
 global clientname
-r=random.randrange(1,100000) # for creating unique client ID
-clientname="IOT_clientId-nXLMZeDcjH"+str(r)
+r=random.randrange(1,100000)
+clientname="IOT_client-Id-"+str(r)
 
 class Mqtt_client():
     
@@ -111,7 +111,6 @@ class Mqtt_client():
               
     def publish_to(self, topic, message):
         self.client.publish(topic,message)        
-        
       
 class ConnectionDock(QDockWidget):
     """Main """
@@ -192,7 +191,7 @@ class PublishDock(QDockWidget):
         self.mc = mc        
                 
         self.ePublisherTopic=QLineEdit()
-        self.ePublisherTopic.setText("matzi/#")        
+        self.ePublisherTopic.setText("matzi/all")        
         self.eQOS=QComboBox()
         self.eQOS.addItems(["0","1","2"])       
         self.eRetainCheckbox = QCheckBox()
@@ -268,7 +267,7 @@ class MainWindow(QMainWindow):
 
         # set up main window
         self.setGeometry(30, 100, 800, 600)
-        self.setWindowTitle('White Cubes GUI')        
+        self.setWindowTitle('MQTT Client GUI')        
 
         # Init QDockWidget objects        
         self.connectionDock = ConnectionDock(self.mc)        
@@ -278,7 +277,6 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.TopDockWidgetArea, self.connectionDock)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.publishDock)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.subscribeDock)
-       
 
 app = QApplication(sys.argv)
 mainwin = MainWindow()

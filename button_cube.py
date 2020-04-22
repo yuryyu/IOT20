@@ -9,6 +9,7 @@ from PyQt5.QtCore import *
 import paho.mqtt.client as mqtt
 import time
 import datetime
+import mqtt_init
 
 # Creating Client name - should be unique 
 global clientname
@@ -94,8 +95,8 @@ class Mqtt_client():
         self.client.on_log=self.on_log
         self.client.on_message=self.on_message
         self.client.username_pw_set(self.username,self.password)        
-        print("Connecting to broker ",self.broker)        
-        self.client.connect(self.broker,self.port)     #connect to broker
+              
+        self.client.connect(self.broker,self.port)    
     
     def disconnect_from(self):
         self.client.disconnect()                   
