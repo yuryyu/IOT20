@@ -9,20 +9,20 @@ from PyQt5.QtCore import *
 import paho.mqtt.client as mqtt
 import time
 import datetime
-import mqtt_init
+from mqtt_init import *
 
 # Creating Client name - should be unique 
 global clientname
-r=random.randrange(1,100000) # for creating unique client ID
-clientname="IOT_clientId-nXLMZeDcjH"+str(r)
+r=random.randrange(1,100000)
+clientname="IOT_client-Id-"+str(r)
 
 class Mqtt_client():
     
     def __init__(self):
         # broker IP adress:
         self.broker=''
-        self.topic='matzi/all'
-        self.port='80' # for using web sockets
+        self.topic=''
+        self.port='' 
         self.clientname=''
         self.username=''
         self.password=''        
@@ -85,7 +85,7 @@ class Mqtt_client():
         topic=msg.topic
         m_decode=str(msg.payload.decode("utf-8","ignore"))
         print("message from:"+topic, m_decode)
-        mainwin.subscribeDock.update_mess_win(m_decode)
+        mainwin.subscribeDock.update_mess_win(topic+': '+m_decode)
 
     def connect_to(self):
         # Init paho mqtt client class        
@@ -95,8 +95,8 @@ class Mqtt_client():
         self.client.on_log=self.on_log
         self.client.on_message=self.on_message
         self.client.username_pw_set(self.username,self.password)        
-              
-        self.client.connect(self.broker,self.port)    
+        print("Connecting to broker ",self.broker)        
+        self.client.connect(self.broker,self.port)     #connect to broker
     
     def disconnect_from(self):
         self.client.disconnect()                   
@@ -112,7 +112,6 @@ class Mqtt_client():
               
     def publish_to(self, topic, message):
         self.client.publish(topic,message)        
-        
       
 class ConnectionDock(QDockWidget):
     """Main """
@@ -123,23 +122,23 @@ class ConnectionDock(QDockWidget):
         self.mc.set_on_connected_to_form(self.on_connected)
         self.eHostInput=QLineEdit()
         self.eHostInput.setInputMask('999.999.999.999')
-        self.eHostInput.setText("139.162.222.115")
+        self.eHostInput.setText(broker_ip)
         
         self.ePort=QLineEdit()
         self.ePort.setValidator(QIntValidator())
         self.ePort.setMaxLength(4)
-        self.ePort.setText("80")
+        self.ePort.setText(broker_port)
         
         self.eClientID=QLineEdit()
         global clientname
         self.eClientID.setText(clientname)
         
         self.eUserName=QLineEdit()
-        #self.eUserName.setText()
+        self.eUserName.setText(username)
         
         self.ePassword=QLineEdit()
         self.ePassword.setEchoMode(QLineEdit.Password)
-        #self.ePassword.setText()
+        self.ePassword.setText(password)
         
         self.eKeepAlive=QLineEdit()
         self.eKeepAlive.setValidator(QIntValidator())
@@ -193,10 +192,13 @@ class PublishDock(QDockWidget):
         self.mc = mc        
                 
         self.ePublisherTopic=QLineEdit()
-        self.ePublisherTopic.setText("matzi/#")        
+        self.ePublisherTopic.setText(pub_topic)
+
         self.eQOS=QComboBox()
-        self.eQOS.addItems(["0","1","2"])       
+        self.eQOS.addItems(["0","1","2"])
+
         self.eRetainCheckbox = QCheckBox()
+
         self.eMessageBox=QPlainTextEdit()        
         self.ePublishButton = QPushButton("Publish",self)
         
@@ -226,7 +228,7 @@ class SubscribeDock(QDockWidget):
         self.mc = mc
         
         self.eSubscribeTopic=QLineEdit()
-        self.eSubscribeTopic.setText("matzi/#") 
+        self.eSubscribeTopic.setText(sub_topic) 
         
         self.eQOS = QComboBox()
         self.eQOS.addItems(["0","1","2"])
@@ -269,7 +271,7 @@ class MainWindow(QMainWindow):
 
         # set up main window
         self.setGeometry(30, 100, 800, 600)
-        self.setWindowTitle('White Cubes GUI')        
+        self.setWindowTitle('Monitor GUI')        
 
         # Init QDockWidget objects        
         self.connectionDock = ConnectionDock(self.mc)        
@@ -279,7 +281,6 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.TopDockWidgetArea, self.connectionDock)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.publishDock)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.subscribeDock)
-       
 
 app = QApplication(sys.argv)
 mainwin = MainWindow()

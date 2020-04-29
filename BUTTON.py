@@ -9,19 +9,23 @@ from PyQt5.QtCore import *
 import paho.mqtt.client as mqtt
 import time
 import datetime
+from mqtt_init import *
 
 # Creating Client name - should be unique 
 global clientname
-r=random.randrange(1,100000)
+r=random.randrange(1,10000000)
 clientname="IOT_client-Id-"+str(r)
+
+button_topic = 'matzi/0/3PI_2'+str(r)+'/sts'
+
 
 class Mqtt_client():
     
     def __init__(self):
         # broker IP adress:
         self.broker=''
-        self.topic='matzi/all'
-        self.port='80' # for using web sockets
+        self.topic=''
+        self.port='' 
         self.clientname=''
         self.username=''
         self.password=''        
@@ -121,23 +125,23 @@ class ConnectionDock(QDockWidget):
         self.mc.set_on_connected_to_form(self.on_connected)
         self.eHostInput=QLineEdit()
         self.eHostInput.setInputMask('999.999.999.999')
-        self.eHostInput.setText("139.162.222.115")
+        self.eHostInput.setText(broker_ip)
         
         self.ePort=QLineEdit()
         self.ePort.setValidator(QIntValidator())
         self.ePort.setMaxLength(4)
-        self.ePort.setText("80")
+        self.ePort.setText(broker_port)
         
         self.eClientID=QLineEdit()
         global clientname
         self.eClientID.setText(clientname)
         
         self.eUserName=QLineEdit()
-        #self.eUserName.setText()
+        self.eUserName.setText(username)
         
         self.ePassword=QLineEdit()
         self.ePassword.setEchoMode(QLineEdit.Password)
-        #self.ePassword.setText()
+        self.ePassword.setText(password)
         
         self.eKeepAlive=QLineEdit()
         self.eKeepAlive.setValidator(QIntValidator())
@@ -148,21 +152,31 @@ class ConnectionDock(QDockWidget):
         self.eCleanSession=QCheckBox()
         self.eCleanSession.setChecked(True)
         
-        self.eConnectbtn=QPushButton("Connect", self)
+        self.eConnectbtn=QPushButton("Enable/Connect", self)
         self.eConnectbtn.setToolTip("click me to connect")
         self.eConnectbtn.clicked.connect(self.on_button_connect_click)
-        self.eConnectbtn.setStyleSheet("background-color: red")
+        self.eConnectbtn.setStyleSheet("background-color: gray")
         
+        self.ePushtbtn=QPushButton("PUSH BUTTON", self)
+        self.ePushtbtn.setToolTip("Push me")
+        self.ePushtbtn.clicked.connect(self.push_button_click)
+        self.ePushtbtn.setStyleSheet("background-color: red")
+
+        self.ePublisherTopic=QLineEdit()
+        self.ePublisherTopic.setText(button_topic)
+
         formLayot=QFormLayout()
-        formLayot.addRow("Host",self.eHostInput )
-        formLayot.addRow("Port",self.ePort )
-        formLayot.addRow("Client ID", self.eClientID)
-        formLayot.addRow("User Name",self.eUserName )
-        formLayot.addRow("Password",self.ePassword )
-        formLayot.addRow("Keep Alive",self.eKeepAlive )
-        formLayot.addRow("SSL",self.eSSL )
-        formLayot.addRow("Clean Session",self.eCleanSession )
-        formLayot.addRow("",self.eConnectbtn)
+        # formLayot.addRow("Host",self.eHostInput )
+        # formLayot.addRow("Port",self.ePort )
+        # formLayot.addRow("Client ID", self.eClientID)
+        # formLayot.addRow("User Name",self.eUserName )
+        # formLayot.addRow("Password",self.ePassword )
+        # formLayot.addRow("Keep Alive",self.eKeepAlive )
+        # formLayot.addRow("SSL",self.eSSL )
+        # formLayot.addRow("Clean Session",self.eCleanSession )
+        formLayot.addRow("Turn On/Off",self.eConnectbtn)
+        formLayot.addRow("Pub topic",self.ePublisherTopic)
+        formLayot.addRow("Button",self.ePushtbtn)
 
         widget = QWidget(self)
         widget.setLayout(formLayot)
@@ -181,78 +195,9 @@ class ConnectionDock(QDockWidget):
         self.mc.set_password(self.ePassword.text())        
         self.mc.connect_to()        
         self.mc.start_listening()
-            
-class PublishDock(QDockWidget):
-    """Publisher """
 
-    def __init__(self,mc):
-        QDockWidget.__init__(self)
-        
-        self.mc = mc        
-                
-        self.ePublisherTopic=QLineEdit()
-        self.ePublisherTopic.setText("matzi/all")        
-        self.eQOS=QComboBox()
-        self.eQOS.addItems(["0","1","2"])       
-        self.eRetainCheckbox = QCheckBox()
-        self.eMessageBox=QPlainTextEdit()        
-        self.ePublishButton = QPushButton("Publish",self)
-        
-        formLayot=QFormLayout()        
-        formLayot.addRow("Topic",self.ePublisherTopic)
-        formLayot.addRow("QOS",self.eQOS)
-        formLayot.addRow("Retain",self.eRetainCheckbox)
-        formLayot.addRow("Message",self.eMessageBox)
-        formLayot.addRow("",self.ePublishButton)
-        
-        self.ePublishButton.clicked.connect(self.on_button_publish_click)
-        
-        widget = QWidget(self)
-        widget.setLayout(formLayot)
-        self.setWidget(widget) 
-        self.setWindowTitle("Publish")         
-       
-    def on_button_publish_click(self):
-        self.mc.publish_to(self.ePublisherTopic.text(), self.eMessageBox.toPlainText())
-        self.ePublishButton.setStyleSheet("background-color: yellow")
-        
-class SubscribeDock(QDockWidget):
-    """Subscribe """
-
-    def __init__(self,mc):
-        QDockWidget.__init__(self)        
-        self.mc = mc
-        
-        self.eSubscribeTopic=QLineEdit()
-        self.eSubscribeTopic.setText("matzi/#") 
-        
-        self.eQOS = QComboBox()
-        self.eQOS.addItems(["0","1","2"])
-        
-        self.eRecMess=QTextEdit()
-
-        self.eSubscribeButton = QPushButton("Subscribe",self)
-        self.eSubscribeButton.clicked.connect(self.on_button_subscribe_click)
-
-        formLayot=QFormLayout()       
-        formLayot.addRow("Topic",self.eSubscribeTopic)
-        formLayot.addRow("QOS",self.eQOS)
-        formLayot.addRow("Received",self.eRecMess)
-        formLayot.addRow("",self.eSubscribeButton)
-                
-        widget = QWidget(self)
-        widget.setLayout(formLayot)
-        self.setWidget(widget)
-        self.setWindowTitle("Subscribe")
-        
-    def on_button_subscribe_click(self):
-        print(self.eSubscribeTopic.text())
-        self.mc.subscribe_to(self.eSubscribeTopic.text())
-        self.eSubscribeButton.setStyleSheet("background-color: yellow")
-    
-    # create function that update text in received message window
-    def update_mess_win(self,text):
-        self.eRecMess.append(text)
+    def push_button_click(self):
+        self.mc.publish_to(self.ePublisherTopic.text(), '"value":1')
         
 class MainWindow(QMainWindow):
     
@@ -266,17 +211,14 @@ class MainWindow(QMainWindow):
         self.setUnifiedTitleAndToolBarOnMac(True)
 
         # set up main window
-        self.setGeometry(30, 100, 800, 600)
-        self.setWindowTitle('MQTT Client GUI')        
+        self.setGeometry(30, 100, 300, 150)
+        self.setWindowTitle('BUTTON')        
 
         # Init QDockWidget objects        
         self.connectionDock = ConnectionDock(self.mc)        
-        self.publishDock =   PublishDock(self.mc)
-        self.subscribeDock = SubscribeDock(self.mc)
         
         self.addDockWidget(Qt.TopDockWidgetArea, self.connectionDock)
-        self.addDockWidget(Qt.BottomDockWidgetArea, self.publishDock)
-        self.addDockWidget(Qt.BottomDockWidgetArea, self.subscribeDock)
+       
 
 app = QApplication(sys.argv)
 mainwin = MainWindow()
