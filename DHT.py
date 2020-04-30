@@ -18,7 +18,7 @@ global clientname
 r=random.randrange(1,10000000)
 clientname="IOT_client-Id-"+str(r)
 DHT_topic = 'matzi/0/3PI_2'+str(r)+'/sts'
-update_rate = 2000 # in msec
+update_rate = 5000 # in msec
 
 class Mqtt_client():
     
