@@ -12,7 +12,8 @@ import datetime
 from mqtt_init import *
 
 # Creating Client name - should be unique 
-global clientname
+global clientname, CONNECTED
+CONNECTED = False
 r=random.randrange(1,10000000)
 clientname="IOT_client-Id-"+str(r)
 
@@ -75,13 +76,16 @@ class Mqtt_client():
         print("log: "+buf)
             
     def on_connect(self, client, userdata, flags, rc):
+        global CONNECTED
         if rc==0:
             print("connected OK")
+            CONNECTED = True
             self.on_connected_to_form();            
         else:
             print("Bad connection Returned code=",rc)
             
     def on_disconnect(self, client, userdata, flags, rc=0):
+        CONNECTED = False
         print("DisConnected result code "+str(rc))
             
     def on_message(self, client, userdata, msg):
@@ -110,11 +114,17 @@ class Mqtt_client():
     def stop_listening(self):        
         self.client.loop_stop()    
     
-    def subscribe_to(self, topic):        
-        self.client.subscribe(topic)
+    def subscribe_to(self, topic):
+        if CONNECTED:
+            self.client.subscribe(topic)
+        else:
+            print("Can't subscribe. Connecection should be established first")       
               
     def publish_to(self, topic, message):
-        self.client.publish(topic,message)        
+        if CONNECTED:
+            self.client.publish(topic,message)
+        else:
+            print("Can't publish. Connecection should be established first")         
       
 class ConnectionDock(QDockWidget):
     """Main """

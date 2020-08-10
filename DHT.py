@@ -14,7 +14,8 @@ from mqtt_init import *
 #from PyQt5.QtCore import QTimer
 
 # Creating Client name - should be unique 
-global clientname
+global clientname, CONNECTED
+CONNECTED = False
 r=random.randrange(1,10000000)
 clientname="IOT_client-Id-"+str(r)
 DHT_topic = 'matzi/0/3PI_2'+str(r)+'/sts'
@@ -76,13 +77,16 @@ class Mqtt_client():
         print("log: "+buf)
             
     def on_connect(self, client, userdata, flags, rc):
+        global CONNECTED
         if rc==0:
             print("connected OK")
+            CONNECTED = True
             self.on_connected_to_form();            
         else:
             print("Bad connection Returned code=",rc)
             
     def on_disconnect(self, client, userdata, flags, rc=0):
+        CONNECTED = False
         print("DisConnected result code "+str(rc))
             
     def on_message(self, client, userdata, msg):
@@ -111,11 +115,18 @@ class Mqtt_client():
     def stop_listening(self):        
         self.client.loop_stop()    
     
-    def subscribe_to(self, topic):        
-        self.client.subscribe(topic)
+    def subscribe_to(self, topic):
+        if CONNECTED:
+            self.client.subscribe(topic)
+        else:
+            print("Can't subscribe. Connecection should be established first")         
+        
               
     def publish_to(self, topic, message):
-        self.client.publish(topic,message)        
+        if CONNECTED:
+            self.client.publish(topic,message)
+        else:
+            print("Can't publish. Connecection should be established first")            
       
 class ConnectionDock(QDockWidget):
     """Main """
@@ -167,15 +178,7 @@ class ConnectionDock(QDockWidget):
         self.Humidity=QLineEdit()
         self.Humidity.setText('')
 
-        formLayot=QFormLayout()
-        # formLayot.addRow("Host",self.eHostInput )
-        # formLayot.addRow("Port",self.ePort )
-        # formLayot.addRow("Client ID", self.eClientID)
-        # formLayot.addRow("User Name",self.eUserName )
-        # formLayot.addRow("Password",self.ePassword )
-        # formLayot.addRow("Keep Alive",self.eKeepAlive )
-        # formLayot.addRow("SSL",self.eSSL )
-        # formLayot.addRow("Clean Session",self.eCleanSession )
+        formLayot=QFormLayout()       
         formLayot.addRow("Turn On/Off",self.eConnectbtn)
         formLayot.addRow("Pub topic",self.ePublisherTopic)
         formLayot.addRow("Temperature",self.Temperature)
