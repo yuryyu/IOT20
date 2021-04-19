@@ -17,8 +17,8 @@ from mqtt_init import *
 global clientname, CONNECTED
 CONNECTED = False
 r=random.randrange(1,10000000)
-clientname="IOT_client-Id-"+str(r)
-DHT_topic = 'matzi/0/3PI_2'+str(r)+'/sts'
+clientname="IOT_client-Id234-"+str(r)
+DHT_topic = 'pr/home/5976397/sts'
 update_rate = 5000 # in msec
 
 class Mqtt_client():

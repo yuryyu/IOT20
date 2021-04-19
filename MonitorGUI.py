@@ -85,7 +85,7 @@ class Mqtt_client():
         topic=msg.topic
         m_decode=str(msg.payload.decode("utf-8","ignore"))
         print("message from:"+topic, m_decode)
-        mainwin.subscribeDock.update_mess_win(topic+': '+m_decode)
+        mainwin.subscribeDock.update_mess_win(m_decode)
 
     def connect_to(self):
         # Init paho mqtt client class        

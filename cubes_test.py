@@ -6,11 +6,11 @@ from mqtt_init import *
 
 # broker IP adress:
 broker=broker_ip
-running_time = 15 # in sec
+running_time = 30 # in sec
 port=broker_port # for using web sockets
 global ON
-ON=True
-TRH = 22
+ON=False
+TRH = 22.4
 
 def on_log(client, userdata, level, buf):
         print("log: "+buf)
@@ -27,12 +27,12 @@ def on_message(client,userdata,msg):
         m_decode=str(msg.payload.decode("utf-8","ignore"))
         print("message received",m_decode)
         #if 'HUMIDITY' not in m_decode:
-        # ON=msg_parse(m_decode)
+        ON=msg_parse(m_decode)
         send_msg(client)
 
 def msg_parse(m_decode):
         print(m_decode)        
-        rez=int(m_decode.split('Temperature: ')[1].split(' Humidity: 76.2')[0])
+        rez=float(m_decode.split('Temperature: ')[1].split(' Humidity:')[0])
         #{"addr":0, "cname":"LDR", "value":1017}
         #{"addr":0, "cname":"TEMPERATURE", "value":32.00}
         # Temperature: 22.1 Humidity: 76.2
@@ -43,13 +43,13 @@ def msg_parse(m_decode):
 def send_msg(client):
         global ON
         # Following is an example for code turning a Relay device 'On':
-        device_ID = "3PI_21689169/sts"
-        client.publish("matzi/0/"+device_ID, ' {"type":"set_state", "action":"set_value", "addr":0, "cname":"ONOFF", "value":1}') 
-        # if ON:
-        #         client.publish("matzi/0/"+device_ID, ' {"type":"set_state", "action":"set_value", "addr":0, "cname":"ONOFF", "value":1}')                
-        # else:
-        #         # and consequently 'OFF':
-        #         client.publish("matzi/0/"+device_ID, ' {"type":"set_state", "action":"set_value", "addr":0, "cname":"ONOFF", "value":0}')
+        device_ID = "3PI_22559442/sts"
+        # client.publish("matzi/0/3PI_22559442/sts", ' {"type":"set_state", "action":"set_value", "addr":0, "cname":"ONOFF", "value":1}') 
+        if ON:
+                client.publish("matzi/0/"+device_ID, ' {"type":"set_state", "action":"set_value", "addr":0, "cname":"ONOFF", "value":1}')                
+        else:
+                # and consequently 'OFF':
+                client.publish("matzi/0/"+device_ID, ' {"type":"set_state", "action":"set_value", "addr":0, "cname":"ONOFF", "value":0}')
                
 
 r=random.randrange(1,10000) # for creating unique client ID
@@ -69,11 +69,11 @@ client.connect(broker,int(port))     #connect to broker
 
 # Next loop will publishing all messages during running time
 client.loop_start()
-#client.publish("matzi/test","test1")
+client.publish('testtopic/778',"test1")
 #client.subscribe("matzi/0/3PI_16145805/sts") # button ID
 #client.subscribe("matzi/0/3PI_11310380/sts") # REED ID
 #client.subscribe("matzi/0/3PI_3380731/sts") # Light ID
-client.subscribe("matzi/0/3PI_24977097/sts") # DTH ID
+client.subscribe('testtopic/778') # DTH ID
 
 #client.subscribe("matzi/#")
 time.sleep(running_time)
